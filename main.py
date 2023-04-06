@@ -16,6 +16,7 @@ scopes = ["user-library-read",
 SPOTIFY_ID = os.getenv("SPOTIFY_ID")
 SPOTIFY_SECRET = os.getenv("SPOTIFY_SECRET")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+PLAYLIST = "1T3VM24iUb9tRu63wo4oJX"
 
 spotipy = spotipy.Spotify(auth_manager=SpotifyOAuth(SPOTIFY_ID, SPOTIFY_SECRET, "http://localhost:9090", scope=scopes))
 
@@ -34,7 +35,9 @@ async def parse(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             track = spotipy.track(word)
 
-            spotipy.playlist_add_items("1T3VM24iUb9tRu63wo4oJX", [word])
+            spotipy.playlist_remove_all_occurrences_of_items(PLAYLIST, [word])
+
+            spotipy.playlist_add_items(PLAYLIST, [word])
 
             await update.message.reply_markdown_v2(
                 f"{track['name']} \- {track['artists'][0]['name']}" +
