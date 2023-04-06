@@ -5,7 +5,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
+from spotipy.oauth2 import SpotifyOAuth
 
 scopes = ["user-library-read",
           "playlist-read-private",
@@ -17,9 +17,7 @@ SPOTIFY_ID = os.getenv("SPOTIFY_ID")
 SPOTIFY_SECRET = os.getenv("SPOTIFY_SECRET")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
-
-auth_manager = SpotifyClientCredentials(SPOTIFY_ID, SPOTIFY_SECRET)
-spotipy = spotipy.Spotify(auth_manager=auth_manager)
+spotipy = spotipy.Spotify(auth_manager=SpotifyOAuth(SPOTIFY_ID, SPOTIFY_SECRET, "http://localhost:9090", scope=scopes))
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
