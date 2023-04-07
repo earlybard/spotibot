@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -49,3 +50,27 @@ if __name__ == '__main__':
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, parse))
     application.run_polling()
+
+
+def load_from_history():
+    """
+    Unused. Was run once to get all history.
+    """
+    with open("/Users/dylan/Downloads/result.json") as json_file:
+        data = json.load(json_file)
+
+        for message in data["messages"]:
+            for text in message["text"]:
+
+                if "text" in text:
+                    words = text["text"].split()
+                else:
+                    words = text.split()
+
+                for word in words:
+                    if word.startswith("https://open.spotify.com/track"):
+                        track = spotipy.track(word)
+
+                        spotipy.playlist_remove_all_occurrences_of_items(PLAYLIST, [word])
+
+                        spotipy.playlist_add_items(PLAYLIST, [word])
