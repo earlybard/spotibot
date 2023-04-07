@@ -39,9 +39,10 @@ async def parse(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             spotipy.playlist_add_items(PLAYLIST, [word])
 
-            await update.message.reply_markdown_v2(
-                f"{track['name']} \- {track['artists'][0]['name']}" +
-                " added to [TECHIES](https://open.spotify.com/playlist/1T3VM24iUb9tRu63wo4oJX)")
+            await update.message.reply_markdown(
+                f"{track['name']} - {track['artists'][0]['name']}" +
+                " added to [TECHIES](https://open.spotify.com/playlist/1T3VM24iUb9tRu63wo4oJX)",
+                quote=False)
 
 
 if __name__ == '__main__':
