@@ -1,15 +1,12 @@
-[tool.poetry]
+[project]
 name = "spotibot"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
+requires-python = ">=3.10"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-python-telegram-bot = "^20.2"
-spotipy = "^2.22.1"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+dependencies = [
+    "python-telegram-bot~=20.2",
+    "spotipy>=2.22.1,<3",
+]
