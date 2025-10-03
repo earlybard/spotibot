@@ -97,7 +97,6 @@ async def parse(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 " added to [TECHIES](https://open.spotify.com/playlist/1T3VM24iUb9tRu63wo4oJX)" + 
                 f"\n\nAlbum: {track['album']['name']} - {track['album']['release_date']}",
                 disable_notification=True, link_preview_options=LinkPreviewOptions(url=track['album']['images'][0]['url']))
-            return
             
         elif status is SaveStatus.ADDED_ALBUM:
             album = sp.album(word)
@@ -106,14 +105,9 @@ async def parse(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"{album['name']} by {album['artists'][0]['name']} - {album['release_date']}" +
                 " added to [TECHIES_ALBUMS](https://open.spotify.com/playlist/0xOvlCuCSwZzpFKZdZrKLS)",
                 disable_notification=True, link_preview_options=LinkPreviewOptions(url=album['images'][0]['url']))
-            return
             
         elif status is SaveStatus.DUPLICATE:
             await update.message.set_reaction("🙈")
-            return
-        
-        else:
-            return
 
 def get_all_playlist_track_ids(playlist_id: str):
     
