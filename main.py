@@ -83,7 +83,7 @@ def add_track_to_playlist(trackLink: str):
                 
     return SaveStatus.NOT_TRACK
 
-async def print_track_details(uri, message: Message, duplicate: bool):
+async def print_track_details(uri, message: Message, duplicate: bool = False):
     track = sp.track(uri)
     await message.reply_markdown(
         f"*Track*: _{track['name']}_ by {track['artists'][0]['name']}\n\n---{' already' if duplicate else ''}" + 
