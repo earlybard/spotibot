@@ -1,7 +1,7 @@
 from enum import Enum
 import json, logging, os, argparse
 
-from telegram import Update, LinkPreviewOptions
+from telegram import Update, LinkPreviewOptions, Message
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 
 import spotipy
@@ -29,9 +29,10 @@ ALBUMS_PLAYLIST = os.getenv("ALBUMS_PLAYLIST")
 
 class SaveStatus(Enum):
     NOT_TRACK = 0
-    DUPLICATE = 1
-    ADDED_TRACK = 2
-    ADDED_ALBUM = 3
+    DUPLICATE_TRACK = 1
+    DUPLICATE_ALBUM = 2
+    ADDED_TRACK = 3
+    ADDED_ALBUM = 4
 
 SINGLES_PLAYLIST_TRACKS = []
 ALBUMS_PLAYLIST_TRACKS = []
@@ -63,7 +64,7 @@ def add_track_to_playlist(trackLink: str):
             SINGLES_PLAYLIST_TRACKS.append(id)
             return SaveStatus.ADDED_TRACK
         else:
-            return SaveStatus.DUPLICATE
+            return SaveStatus.DUPLICATE_TRACK
                    
     # full album, only add new entries
     if trackLink.startswith(ALBUM_URL):
@@ -78,10 +79,24 @@ def add_track_to_playlist(trackLink: str):
         if anySaved:
             return SaveStatus.ADDED_ALBUM
         else:
-            return SaveStatus.DUPLICATE
+            return SaveStatus.DUPLICATE_ALBUM
                 
     return SaveStatus.NOT_TRACK
 
+async def print_track_details(uri, message: Message, duplicate: bool):
+    track = sp.track(uri)
+    await message.reply_markdown(
+        f"*Track*: _{track['name']}_ by {track['artists'][0]['name']}\n\n---{' already' if duplicate else ''}" + 
+        " added to [TECHIES](https://open.spotify.com/playlist/1T3VM24iUb9tRu63wo4oJX)---" + 
+        f"\n\n*Album*: {track['album']['name']} - {track['album']['release_date']}",
+        disable_notification=True, link_preview_options=LinkPreviewOptions(url=track['album']['images'][0]['url']))
+    
+async def print_album_details(uri, message: Message, duplicate: bool):
+    album = sp.album(uri)
+    await message.reply_markdown(
+        f"*Album*: _{album['name']}_ by {album['artists'][0]['name']} - {album['release_date']}\n\n---{' already' if duplicate else ''}" +
+        " added to [TECHIES_ALBUMS](https://open.spotify.com/playlist/0xOvlCuCSwZzpFKZdZrKLS)---",
+        disable_notification=True, link_preview_options=LinkPreviewOptions(url=album['images'][0]['url']))
 
 async def parse(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if args.logging: print("parsing message")
@@ -90,23 +105,19 @@ async def parse(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for word in words:
         status = add_track_to_playlist(word)
         if status is SaveStatus.ADDED_TRACK:
-            track = sp.track(word)
+            await print_track_details(word, update.message)
             await update.message.set_reaction("❤")
-            await update.message.reply_markdown(
-                f"Track: {track['name']} by {track['artists'][0]['name']} " + 
-                " added to [TECHIES](https://open.spotify.com/playlist/1T3VM24iUb9tRu63wo4oJX)" + 
-                f"\n\nAlbum: {track['album']['name']} - {track['album']['release_date']}",
-                disable_notification=True, link_preview_options=LinkPreviewOptions(url=track['album']['images'][0]['url']))
+            
+        elif status is SaveStatus.DUPLICATE_TRACK:
+            await print_track_details(word, update.message, True)
+            await update.message.set_reaction("🙈")
             
         elif status is SaveStatus.ADDED_ALBUM:
-            album = sp.album(word)
+            await print_album_details(word, update.message)
             await update.message.set_reaction("❤")
-            await update.message.reply_markdown(
-                f"{album['name']} by {album['artists'][0]['name']} - {album['release_date']}" +
-                " added to [TECHIES_ALBUMS](https://open.spotify.com/playlist/0xOvlCuCSwZzpFKZdZrKLS)",
-                disable_notification=True, link_preview_options=LinkPreviewOptions(url=album['images'][0]['url']))
             
-        elif status is SaveStatus.DUPLICATE:
+        elif status is SaveStatus.DUPLICATE_ALBUM:
+            await print_album_details(word, update.message, True)
             await update.message.set_reaction("🙈")
 
 def get_all_playlist_track_ids(playlist_id: str):
